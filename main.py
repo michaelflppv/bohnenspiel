@@ -38,5 +38,5 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(f'Models/model.pt', map_location=device))
         optimizer.load_state_dict(torch.load(f'Models/optimizer.pt', map_location=device))
 
-    alphaZero = Train(model, optimizer, game, args)
-    alphaZero.learn()
+    training = Train(model, optimizer, game, args)
+    training.learn()
