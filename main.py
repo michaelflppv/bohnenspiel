@@ -6,16 +6,20 @@ from bohnenspiel import Bohnenspiel
 from architecture_model import ResNet
 from train import Train
 
+# Set random seeds for reproducibility
 torch.manual_seed(0)
 random.seed(0)
 np.random.seed(0)
 
+# Determine the device to run the model on (GPU if available, otherwise CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
+# Flag to indicate whether to load existing model and optimizer states
 LOAD = False
 
 if __name__ == '__main__':
+    # Define the training arguments and hyperparameters
     args = {
         'num_iterations': 8,  # number of highest level iterations
         'num_selfPlay_iterations': 500,  # number of self-play games to play within each iteration
@@ -30,13 +34,16 @@ if __name__ == '__main__':
         'dirichlet_epsilon': 0.125,  # the value of the dirichlet noise
     }
 
+    # Initialize the game, model, and optimizer
     game = Bohnenspiel()
     model = ResNet(game, 4, 128, device)
     optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
+    # Load existing model and optimizer states if LOAD is True
     if LOAD:
         model.load_state_dict(torch.load(f'Models/model.pt', map_location=device))
         optimizer.load_state_dict(torch.load(f'Models/optimizer.pt', map_location=device))
 
+    # Initialize the training process and start learning
     training = Train(model, optimizer, game, args)
     training.learn()

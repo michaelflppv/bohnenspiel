@@ -7,7 +7,27 @@ from mcts import MCTS
 
 
 class Train:
+    """
+    Training class for the AlphaZero algorithm.
+
+    Attributes:
+        model (torch.nn.Module): The neural network model.
+        optimizer (torch.optim.Optimizer): The optimizer for training the model.
+        game (Game): The game object that provides game-specific logic.
+        args (dict): A dictionary of arguments and hyperparameters for training.
+        mcts (MCTS): The Monte Carlo Tree Search object.
+    """
+
     def __init__(self, model, optimizer, game, args):
+        """
+        Initializes the Train object with the given model, optimizer, game, and arguments.
+
+        Args:
+            model (torch.nn.Module): The neural network model.
+            optimizer (torch.optim.Optimizer): The optimizer for training the model.
+            game (Game): The game object.
+            args (dict): A dictionary of arguments and hyperparameters.
+        """
         self.model = model
         self.optimizer = optimizer
         self.game = game
@@ -15,6 +35,12 @@ class Train:
         self.mcts = MCTS(model, game, args)
 
     def selfPlay(self):
+        """
+        Performs self-play to generate training data.
+
+        Returns:
+            list: A list of tuples containing the state, action probabilities, and outcome.
+        """
         memory = []
         player = 1
         state = self.game.get_initial_state()
@@ -47,6 +73,12 @@ class Train:
             player = self.game.get_opponent(player)
 
     def train(self, memory):
+        """
+        Trains the model using the generated self-play data.
+
+        Args:
+            memory (list): A list of tuples containing the state, action probabilities, and outcome.
+        """
         random.shuffle(memory)
         for batchIdx in range(0, len(memory), self.args['batch_size']):
             sample = memory[batchIdx:batchIdx + self.args['batch_size']]
@@ -70,6 +102,11 @@ class Train:
             self.optimizer.step()
 
     def learn(self):
+        """
+        Executes the learning process, including self-play and training.
+
+        Saves the model and optimizer states after training.
+        """
         for iteration in range(self.args['num_iterations']):
             memory = []
 
