@@ -2,8 +2,8 @@ import torch
 from torch.optim import Adam
 import random
 import numpy as np
-from bohnenspiel import Bohnenspiel
-from architecture_model import ResNet
+from python.bohnenspiel import Bohnenspiel
+from python.architecture_model import ResNet
 from train import Train
 import time
 import requests

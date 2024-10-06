@@ -3,7 +3,7 @@ import random
 import torch
 import torch.nn.functional as F
 from tqdm import trange
-from mcts import MCTS
+from python.mcts import MCTS
 
 
 class Train:
