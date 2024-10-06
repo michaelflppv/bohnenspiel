@@ -1,8 +1,3 @@
-import ai.djl.ndarray.NDArray;
-import ai.djl.ndarray.NDList;
-import ai.djl.ndarray.NDManager;
-import ai.djl.training.ParameterStore;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -11,27 +6,20 @@ import java.util.concurrent.*;
  * The MonteCarloTreeSearch class is responsible for performing the Monte Carlo Tree Search algorithm.
  * It uses a neural network model to predict the policy and value of a given state.
  * The MCTS algorithm is used to search the game tree and find the best move to play.
- *
- * @author mfilippo (Mikhail Filippov)
- * @version 10.05.2024
  */
 public class MonteCarloTreeSearch {
-    // Model used for the MCTS algorithm
-    private final ArchitectureModel model;
     // Game on which the MCTS algorithm is applied
-    private final MCTSClient client;
+    private final Main client;
     // Hyperparameters for the MCTS algorithm
     private final Arguments args;
 
     /**
      * Constructor for the MonteCarloTreeSearch class.
      *
-     * @param model  {@link ArchitectureModel} the model used for the MCTS algorithm
-     * @param client {@link MCTSClient} the game on which the MCTS algorithm is applied
+     * @param client {@link Main} the game on which the MCTS algorithm is applied
      * @param args   {@link Arguments} map for hyperparameters of MCTS
      */
-    public MonteCarloTreeSearch(ArchitectureModel model, MCTSClient client, Arguments args) {
-        this.model = model;
+    public MonteCarloTreeSearch(Main client, Arguments args) {
         this.client = client;
         this.args = args;
     }
@@ -76,65 +64,65 @@ public class MonteCarloTreeSearch {
      */
     public float[] search(String[][] state) {
         // Create the root node of the search tree
-        Node root = new Node(client, args, state, null, 0, 0, 1);
+        /*Node root = new Node(client, args, state, null, 0, 0, 1);
 
-        try (NDManager manager = NDManager.newBaseManager()) {
-            // Predict the policy for the current state
-            float[] policy = predictPolicy(manager, client.getEncodedState(state));
-            policy = softmax(policy);
-            policy = dirichletNoise(policy, args.getDirichletEpsilon(), args.getDirichletAlpha());
+        // Predict the policy for the current state
+        float[] policy = predictPolicy(manager, client.getEncodedState(state));
+        policy = softmax(policy);
+        policy = dirichletNoise(policy, args.getDirichletEpsilon(), args.getDirichletAlpha());
 
-            // Mask the policy with the valid moves
-            int[] validMoves = client.getValidMoves(state);
-            policy = elementwiseMultiply(policy, validMoves);
-            policy = normalize(policy);
-            root.expand(policy);
+        // Mask the policy with the valid moves
+        int[] validMoves = client.getValidMoves(state);
+        policy = elementwiseMultiply(policy, validMoves);
+        policy = normalize(policy);
+        root.expand(policy);
 
-            // Perform the MCTS algorithm for a given number of searches
-            for (int search = 0; search < args.getNumMCTSSearches(); search++) {
-                Node node = root;
+        // Perform the MCTS algorithm for a given number of searches
+        for (int search = 0; search < args.getNumMCTSSearches(); search++) {
+            Node node = root;
 
-                // Selection
-                while (node.isExpanded()) {
-                    node = node.select();
-                }
-
-                // Simulation
-                String teamId = client.getTeamID();
-                for (String opponent: this.client.getBoardModel().getAllTeamIDs()) {
-                    if (!opponent.equals(teamId)) {
-                        teamId = opponent;
-                    }
-                }
-                float value = client.getValue(node.getMove());
-                boolean isTerminal = client.getTerminated(state, node.getMove());
-                value = client.getOpponentValue(value);
-
-                // Expansion
-                if (!isTerminal) {
-                    policy = predictPolicy(manager, client.getEncodedState(node.getState()));
-                    validMoves = client.getValidMoves(node.getState());
-                    policy = elementwiseMultiply(policy, validMoves);
-                    policy = normalize(policy);
-
-                    // Predict the value of the state
-                    float[] valueProbs = predictValue(manager, client.getEncodedState(node.getState()));
-                    value = valueProbs[0];
-
-                    node.expand(policy);
-                }
-
-                node.backPropagation(value);
+            // Selection
+            while (node.isExpanded()) {
+                node = node.select();
             }
 
-            float[] actionProbs = new float[client.getActionSize()];
-            for (Node child : root.getChildren()) {
-                actionProbs[child.getMove()] = child.getVisitCount();
+            // Simulation
+            String teamId = client.getTeamID();
+            for (String opponent: this.client.getBoardModel().getAllTeamIDs()) {
+                if (!opponent.equals(teamId)) {
+                    teamId = opponent;
+                }
             }
-            actionProbs = normalize(actionProbs);
+            float value = client.getValue(node.getMove());
+            boolean isTerminal = client.getTerminated(state, node.getMove());
+            value = client.getOpponentValue(value);
 
-            return actionProbs;
+            // Expansion
+            if (!isTerminal) {
+                policy = predictPolicy(manager, client.getEncodedState(node.getState()));
+                validMoves = client.getValidMoves(node.getState());
+                policy = elementwiseMultiply(policy, validMoves);
+                policy = normalize(policy);
+
+                // Predict the value of the state
+                float[] valueProbs = predictValue(manager, client.getEncodedState(node.getState()));
+                value = valueProbs[0];
+
+                node.expand(policy);
+            }
+
+            node.backPropagation(value);
         }
+
+        float[] actionProbs = new float[client.getActionSize()];
+        for (Node child : root.getChildren()) {
+            actionProbs[child.getMove()] = child.getVisitCount();
+        }
+        actionProbs = normalize(actionProbs);
+
+        return actionProbs;
+         */
+        return null;
     }
 
     /**
@@ -144,7 +132,7 @@ public class MonteCarloTreeSearch {
      * @param encodedState {@link float[][][]} the encoded state of the game
      * @return float[] the policy predicted by the model
      */
-    public float[] predictPolicy(NDManager manager, float[][][] encodedState) {
+    /*public float[] predictPolicy(NDManager manager, float[][][] encodedState) {
 
         NDArray stateNDArray = model.createNDArray(encodedState);
         NDList stateNDList = new NDList(stateNDArray);
@@ -155,7 +143,7 @@ public class MonteCarloTreeSearch {
 
         // Convert the output to a float array
         return output.toFloatArray();
-    }
+    }*/
 
 
     /**
@@ -165,7 +153,7 @@ public class MonteCarloTreeSearch {
      * @param encodedState {@link float[][][]} the encoded state of the game
      * @return float[] the value predicted by the model
      */
-    public float[] predictValue(NDManager manager, float[][][] encodedState) {
+    /*public float[] predictValue(NDManager manager, float[][][] encodedState) {
 
         NDArray stateNDArray = model.createNDArray(encodedState);
         NDList stateNDList = new NDList(stateNDArray);
@@ -176,7 +164,7 @@ public class MonteCarloTreeSearch {
 
         // Convert the output to a float array
         return output.toFloatArray();
-    }
+    }*/
 
     /**
      * The softmax method applies the softmax function to a given array.
