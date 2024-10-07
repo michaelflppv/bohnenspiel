@@ -6,11 +6,11 @@ import java.util.List;
  */
 public class Node {
     // AI Client
-    private final Main client;
+    private final Bohnenspiel game;
     // Hyperparameters for the MCTS algorithm
-    private final Arguments arguments;
+    private final Arguments args;
     // Current state of the game
-    private final String[][] state;
+    private final int[] board;
     // Reference to the parent node
     private final Node parent;
 
@@ -29,18 +29,18 @@ public class Node {
     /**
      * Constructor for the Node class.
      *
-     * @param client    {@link Main} the game on which the MCTS algorithm is applied
+     * @param game    {@link Bohnenspiel} the game on which the MCTS algorithm is applied
      * @param arguments map for hyperparameters of MCTS
-     * @param state     {@link String[][]} the current state of the game
+     * @param board     {@link int[]} the current state of the game
      * @param parent    {@link Node} the parent node
      * @param move      {@link int} the action taken to reach the node
      * @param prior     {@link float} the prior probability of the current node
      * @param visitCount {@link int} the number of times the node has been visited
      */
-    public Node(Main client, Arguments arguments, String[][] state, Node parent, int move, float prior, int visitCount) {
-        this.client = client;
-        this.arguments = arguments;
-        this.state = state;
+    public Node(Bohnenspiel game, Arguments arguments, int[] board, Node parent, int move, float prior, int visitCount) {
+        this.game = game;
+        this.args = arguments;
+        this.board = board;
         this.parent = parent;
 
         this.move = move;
@@ -92,7 +92,7 @@ public class Node {
         } else {
             qValue = 1 - ((child.valueSum / child.visitCount) + 1) / 2;
         }
-        double exploration = this.arguments.getC() * (Math.sqrt(this.visitCount) / (child.visitCount + 1)) * child.prior;
+        double exploration = this.args.getC() * (Math.sqrt(this.visitCount) / (child.visitCount + 1)) * child.prior;
         return qValue + exploration;
     }
 
@@ -105,14 +105,14 @@ public class Node {
         for (int action = 0; action < policy.length; action++) {
             if (policy[action] > 0) {
                 // Copy the current state
-                String[][] childState = client.copyState(this.state);
+                int[] childBoard = board.clone();
 
                 // Get the next state by applying the action
-                //childState = client.changePerspective(childState, client.getOpponent(this.client.getTeamID()));
-                childState = this.client.getNextState(childState, action);
+                childBoard = game.changePerspective(childBoard, game.getOpponent(1));
+                childBoard = game.getNextState(childBoard, action);
 
                 // Create a new child node and add it to the list of children
-                Node child = new Node(client, arguments, childState, this, action, policy[action], 0);
+                Node child = new Node(game, args, childBoard, this.parent, action, policy[action], 0);
                 this.children.add(child);
             }
         }
@@ -124,19 +124,14 @@ public class Node {
      *
      * @param value {@link int} the value to be back-propagated
      */
-    public void backPropagation(float value) {
+    public void backpropagate(float value) {
         this.valueSum += value;
         this.visitCount++;
 
-        /*value = this.client.getOpponentValue(value);
         if (this.parent != null) {
-            for (String opponent : this.client.getBoardModel().getAllTeamIDs()) {
-                if (!opponent.equals(this.client.getTeamID())) {
-                    value = this.client.getOpponentValue(value);
-                    this.parent.backPropagation(value);
-                }
-            }
-        }*/
+            value = this.game.getOpponentValue(value);
+            this.parent.backpropagate(value);
+        }
     }
 
     /**
@@ -171,7 +166,7 @@ public class Node {
      *
      * @return the state of the current node
      */
-    public String[][] getState() {
-        return this.state;
+    public int[] getBoard() {
+        return this.board;
     }
 }
