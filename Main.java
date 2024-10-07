@@ -4,6 +4,9 @@ import java.io.InputStreamReader;
 import java.net.URI;
 
 
+/**
+ * Main class for the game.
+ */
 public class Main {
     // static String server = "http://127.0.0.1:5000";
     static String server = "http://bohnenspiel.informatik.uni-mannheim.de";
@@ -12,7 +15,11 @@ public class Main {
     static int p1 = 0;
     static int p2 = 0;
 
-
+    /**
+     * Main method of the application.
+     * @param args command line arguments
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     public static void main(String[] args) throws Exception {
         // System.out.println(load(server));
         createGame();
@@ -21,6 +28,17 @@ public class Main {
     }
 
 
+    /**
+     * This method is used to create a new game.
+     * It first constructs the URL to create a game and then sends a request to the server.
+     * The server responds with a game ID which is then printed to the console.
+     *
+     * After the game is created, it enters a loop where it checks the state of the game every 3 seconds.
+     * If the state is "0" or "-1", it breaks the loop and proceeds to the play method.
+     * If the state is "-2", it prints "time out" to the console and returns from the method.
+     *
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     static void createGame() throws Exception {
         String url = server + "/api/creategame/" + name;
         String gameID = load(url);
@@ -41,7 +59,14 @@ public class Main {
         play(gameID, 0);
     }
 
-
+    /**
+     * This method is used to fetch and print the list of open games.
+     * It constructs the URL to fetch open games and sends a request to the server.
+     * The server responds with a list of open games which are then split into an array.
+     * Each game in the array is then printed to the console.
+     *
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     static void openGames() throws Exception {
         String url = server + "/api/opengames";
         String[] opengames = load(url).split(";");
@@ -50,7 +75,17 @@ public class Main {
         }
     }
 
-
+    /**
+     * This method is used to join a game.
+     * It first constructs the URL to join a game using the provided game ID and then sends a request to the server.
+     * The server responds with a state which is then printed to the console.
+     *
+     * If the state is "1", it proceeds to the play method with an offset of 6.
+     * If the state is "0", it prints "error (join game)" to the console.
+     *
+     * @param gameID the ID of the game to join
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     static void joinGame(String gameID) throws Exception {
         String url = server + "/api/joingame/" + gameID + "/" + name;
         String state = load(url);
@@ -62,7 +97,19 @@ public class Main {
         }
     }
 
-
+    /**
+     * This method is used to play the game.
+     * It first constructs the URLs for checking the game state, getting the state message, and getting the state ID.
+     * It then initializes the game board and sets the start and end positions based on the provided offset.
+     *
+     * The method enters a loop where it checks the game state every second.
+     * If the state ID is not "2" and the move state is within the start and end positions or is "-1", it proceeds to make a move.
+     * If the move state is "-2" or the state ID is "2", it prints "GAME Finished" to the console, fetches the state message, and returns from the method.
+     *
+     * @param gameID the ID of the game to play
+     * @param offset the offset to use when calculating the start and end positions
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     static void play(String gameID, int offset) throws Exception {
         String checkURL = server + "/api/check/" + gameID + "/" + name;
         String statesMsgURL = server + "/api/statemsg/" + gameID;
@@ -113,7 +160,18 @@ public class Main {
         }
     }
 
-
+    /**
+     * This method is used to update the game board.
+     * It first gets the value at the provided field and sets the field to 0.
+     * It then distributes the value across the board in a clockwise direction.
+     *
+     * If the final field has 2, 4, or 6 beans, it captures the beans and adds them to the player's score.
+     * It continues capturing beans from the previous fields as long as they have 2, 4, or 6 beans.
+     *
+     * @param board the current game board
+     * @param field the field to update
+     * @return the updated game board
+     */
     static int[] updateBoard(int[] board, int field) {
         int startField = field;
 
@@ -139,7 +197,14 @@ public class Main {
         return board;
     }
 
-
+    /**
+     * This method is used to print the current state of the game board.
+     * It first constructs a string representation of the top half of the board (positions 7 to 12) in reverse order.
+     * It then adds a newline character to the string and appends a string representation of the bottom half of the board (positions 1 to 6).
+     *
+     * @param board the current game board
+     * @return a string representation of the game board
+     */
     static String printBoard(int[] board) {
         String s = "";
         for (int i = 11; i >= 6; i--) {
@@ -162,120 +227,28 @@ public class Main {
         return s;
     }
 
-
+    /**
+     * This method is used to make a move in the game.
+     * It first constructs the URL to make a move using the provided game ID and field ID and then sends a request to the server.
+     * The server responds with a message which is then printed to the console.
+     *
+     * @param gameID the ID of the game to make a move in
+     * @param fieldID the ID of the field to make a move from
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     static void move(String gameID, int fieldID) throws Exception {
         String url = server + "/api/move/" + gameID + "/" + name + "/" + fieldID;
         System.out.println(load(url));
     }
 
-
+    /**
+     * Method to load the URL.
+     * @param url the URL to load
+     * @return the loaded URL
+     * @throws Exception if any error occurs during the execution of the method.
+     */
     static String load(String url) throws Exception {
         URI uri = new URI(url.replace(" ", ""));
         return uri.toString();
-    }
-
-    /**
-     * Method to get the initial state of the game.
-     *
-     * @return the initial state of the game
-     */
-    public String[][] getInitialState() {
-        return null;
-    }
-
-    /**
-     * Method to get the next state of the game, after a move has been made
-     * from a previous state.
-     *
-     * @return the current state of the game
-     */
-    public String[][] getNextState(String[][] state, int action) {
-        return null;
-    }
-
-    /**
-     * Method to get the valid moves for the current state of the game.
-     *
-     * @return the valid moves for the current state of the game
-     */
-    public int[] getValidMoves(String[][] state) {
-        return null;
-    }
-
-
-    /**
-     * Method to get the value of the game.
-     * Winner: 1, True
-     * Draw: 0, True
-     * else: 0, False
-     *
-     * @return the value of the game
-     */
-    public float getValue(int action) {
-        return 0;
-    }
-
-    /**
-     * Method to check if the game is terminated.
-     * Winner: 1, True
-     * Draw: 0, True
-     * else: 0, False
-     *
-     * @return true if the game is terminated, false otherwise
-     */
-    public boolean getTerminated(String[][] state, int action) {
-        return false;
-    }
-
-    /**
-     * Method to get the opponent's team identifier.
-     *
-     * @return the current player
-     */
-    public String getOpponent(String id) {
-        return null;
-    }
-
-    /**
-     * Method to get the opponent's value.
-     *
-     * @param value the value of the opponent
-     * @return the value of the opponent
-     */
-    public float getOpponentValue(float value) {
-        return -value;
-    }
-
-    /**
-     * Method to change the perspective of the game.
-     *
-     * @return the state of the game
-     */
-    public String[][] changePerspective(String[][] rotatedState, String teamID) {
-        return null;
-    }
-
-    /**
-     * Method to encode the state of the game.
-     *
-     * @param state the state of the game
-     * @return the encoded state of the game
-     */
-    public float[][][] getEncodedState(String[][] state) {
-        return null;
-    }
-
-    /**
-     * Method to copy the state of the game.
-     *
-     * @param state the state of the game
-     * @return the copy of the state
-     */
-    public String[][] copyState(String[][] state) {
-        String[][] copy = new String[state.length][state[0].length];
-        for (int i = 0; i < state.length; i++) {
-            System.arraycopy(state[i], 0, copy[i], 0, state[0].length);
-        }
-        return copy;
     }
 }
