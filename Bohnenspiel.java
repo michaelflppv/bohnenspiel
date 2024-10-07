@@ -61,16 +61,23 @@ public class Bohnenspiel {
     }
 
     /**
-     * Returns the value and termination status of the game after a given action.
+     * Returns the value of the given board state.
      */
-    public Object[] getValueAndTerminated(int[] state) {
+    public int getValue(int[] board) {
         if (checkWin()) {
-            return new Object[]{1, true};  // Game won.
+            return 1;
         }
-        if (Arrays.stream(getValidMoves(state)).sum() == 0) {
-            return new Object[]{0, true};  // Game ended in a draw.
+        return 0;
+    }
+
+    /**
+     * Returns the termination status of the game.
+     */
+    public boolean getTerminated(int[] board) {
+        if (checkWin()) {
+            return true;
         }
-        return new Object[]{0, false};  // Game continues.
+        return Arrays.stream(getValidMoves(board)).sum() == 0;
     }
 
     /**
@@ -137,10 +144,15 @@ public class Bohnenspiel {
 
     // Additional getters for score (p1 and p2)
     public int getP1Score() {
-        return p1;
+        return this.p1;
     }
 
     public int getP2Score() {
-        return p2;
+        return this.p2;
+    }
+
+    // Getter for action size
+    public int getActionSize() {
+        return this.actionSize;
     }
 }
