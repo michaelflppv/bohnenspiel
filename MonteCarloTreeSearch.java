@@ -9,18 +9,18 @@ import java.util.concurrent.*;
  */
 public class MonteCarloTreeSearch {
     // Game on which the MCTS algorithm is applied
-    private final Main client;
+    private final Bohnenspiel game;
     // Hyperparameters for the MCTS algorithm
     private final Arguments args;
 
     /**
      * Constructor for the MonteCarloTreeSearch class.
      *
-     * @param client {@link Main} the game on which the MCTS algorithm is applied
+     * @param game {@link Bohnenspiel} the game on which the MCTS algorithm is applied
      * @param args   {@link Arguments} map for hyperparameters of MCTS
      */
-    public MonteCarloTreeSearch(Main client, Arguments args) {
-        this.client = client;
+    public MonteCarloTreeSearch(Bohnenspiel game, Arguments args) {
+        this.game = game;
         this.args = args;
     }
 
@@ -29,15 +29,15 @@ public class MonteCarloTreeSearch {
      * It creates a pool of 4 threads and submits the search task to each thread.
      * The results of the search are then retrieved and returned as a 2D float array.
      *
-     * @param state {@link String[][]} the current state of the game
+     * @param board {@link int[]} the current state of the game
      * @return float[][] the probabilities of each action
      */
-    public float[][] parallelSearch(String[][] state) {
+    public float[][] parallelSearch(int[] board) {
         ExecutorService executor = Executors.newFixedThreadPool(4); // create a pool of 4 threads
         List<Future<float[]>> futures = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
-            Callable<float[]> callable = () -> search(state); // define the task
+            Callable<float[]> callable = () -> search(board); // define the task
             Future<float[]> future = executor.submit(callable); // submit the task for execution
             futures.add(future);
         }
@@ -59,168 +59,69 @@ public class MonteCarloTreeSearch {
     /**
      * The search method performs the Monte Carlo Tree Search algorithm to find the best move to play.
      *
-     * @param state {@link String[][]} the current state of the game
+     * @param board {@link int[]} the current state of the game
      * @return float[] the probabilities of each action
      */
-    public float[] search(String[][] state) {
+    public float[] search(int[] board) {
         // Create the root node of the search tree
-        /*Node root = new Node(client, args, state, null, 0, 0, 1);
+        Node root = new Node(game, args, board, null, 0, 0, 1);
 
-        // Predict the policy for the current state
-        float[] policy = predictPolicy(manager, client.getEncodedState(state));
-        policy = softmax(policy);
-        policy = dirichletNoise(policy, args.getDirichletEpsilon(), args.getDirichletAlpha());
-
-        // Mask the policy with the valid moves
-        int[] validMoves = client.getValidMoves(state);
-        policy = elementwiseMultiply(policy, validMoves);
-        policy = normalize(policy);
-        root.expand(policy);
+        // Initialize the valid moves for the current state
+        int[] validMoves = game.getValidMoves(board);
 
         // Perform the MCTS algorithm for a given number of searches
         for (int search = 0; search < args.getNumMCTSSearches(); search++) {
             Node node = root;
 
-            // Selection
-            while (node.isExpanded()) {
+            // Selection: Traverse the tree, selecting nodes with the highest UCB (Upper Confidence Bound)
+            while (node.isExpanded() && !game.getTerminated(node.getBoard())) {
                 node = node.select();
             }
 
-            // Simulation
-            String teamId = client.getTeamID();
-            for (String opponent: this.client.getBoardModel().getAllTeamIDs()) {
-                if (!opponent.equals(teamId)) {
-                    teamId = opponent;
-                }
-            }
-            float value = client.getValue(node.getMove());
-            boolean isTerminal = client.getTerminated(state, node.getMove());
-            value = client.getOpponentValue(value);
-
-            // Expansion
-            if (!isTerminal) {
-                policy = predictPolicy(manager, client.getEncodedState(node.getState()));
-                validMoves = client.getValidMoves(node.getState());
-                policy = elementwiseMultiply(policy, validMoves);
-                policy = normalize(policy);
-
-                // Predict the value of the state
-                float[] valueProbs = predictValue(manager, client.getEncodedState(node.getState()));
-                value = valueProbs[0];
-
-                node.expand(policy);
+            // Expansion: If the node is not terminal, we expand it
+            if (!game.getTerminated(node.getBoard())) {
+                validMoves = game.getValidMoves(node.getBoard());
+                node.expand(validMoves);
             }
 
-            node.backPropagation(value);
+            // Simulation: Perform a random playout from the current node until the game terminates
+            int[] simulatedBoard = node.getBoard().clone();
+
+            while (!game.getTerminated(simulatedBoard)) {
+                validMoves = game.getValidMoves(simulatedBoard);
+                int randomMove = selectRandomMove(validMoves);
+                simulatedBoard = game.getNextState(simulatedBoard, randomMove);
+            }
+
+            // Backpropagation: Once the game reaches a terminal state, backpropagate the result
+            float value = game.getValue(simulatedBoard);
+            value = game.getOpponentValue(value); // Adjust for the perspective of the current player
+            node.backpropagate(value);
         }
 
-        float[] actionProbs = new float[client.getActionSize()];
+        float[] actionProbs = new float[game.getActionSize()];
         for (Node child : root.getChildren()) {
             actionProbs[child.getMove()] = child.getVisitCount();
         }
         actionProbs = normalize(actionProbs);
 
         return actionProbs;
-         */
-        return null;
     }
 
     /**
-     * The createPolicy method uses the neural network model to predict the policy of a given state.
+     * The selectRandomMove method selects a random move from the given list of valid moves.
      *
-     * @param manager {@link NDManager} the NDManager used to create NDArrays
-     * @param encodedState {@link float[][][]} the encoded state of the game
-     * @return float[] the policy predicted by the model
+     * @param validMoves {@link int[]} the list of valid moves
+     * @return int the selected random move
      */
-    /*public float[] predictPolicy(NDManager manager, float[][][] encodedState) {
-
-        NDArray stateNDArray = model.createNDArray(encodedState);
-        NDList stateNDList = new NDList(stateNDArray);
-
-        // Perform a forward pass through the model
-        NDList outputList = model.forward(new ParameterStore(manager, false), stateNDList, false);
-        NDArray output = outputList.get(0);
-
-        // Convert the output to a float array
-        return output.toFloatArray();
-    }*/
-
-
-    /**
-     * The predictValue method uses the neural network model to predict the value of a given state.
-     *
-     * @param manager {@link NDManager} the NDManager used to create NDArrays
-     * @param encodedState {@link float[][][]} the encoded state of the game
-     * @return float[] the value predicted by the model
-     */
-    /*public float[] predictValue(NDManager manager, float[][][] encodedState) {
-
-        NDArray stateNDArray = model.createNDArray(encodedState);
-        NDList stateNDList = new NDList(stateNDArray);
-
-        // Perform a forward pass through the model
-        NDList outputList = model.forward(new ParameterStore(manager, false), stateNDList, false);
-        NDArray output = outputList.get(1);
-
-        // Convert the output to a float array
-        return output.toFloatArray();
-    }*/
-
-    /**
-     * The softmax method applies the softmax function to a given array.
-     * The softmax function is used to convert a vector of real numbers into a probability distribution.
-     * Each output number in the array will be in the range (0, 1), and the sum of all numbers will be 1.
-     *
-     * @param x {@link float[]} the array to which the softmax function is applied
-     * @return float[] the array after applying the softmax function
-     */
-    private float[] softmax(float[] x) {
-        float max = Float.NEGATIVE_INFINITY;
-        for (float v : x) {
-            max = Math.max(max, v);
+    private int selectRandomMove(int[] validMoves) {
+        List<Integer> possibleMoves = new ArrayList<>();
+        for (int i = 0; i < validMoves.length; i++) {
+            if (validMoves[i] == 1) {
+                possibleMoves.add(i);
+            }
         }
-        float sum = 0;
-        for (int i = 0; i < x.length; i++) {
-            x[i] = (float) Math.exp(x[i] - max);
-            sum += x[i];
-        }
-        for (int i = 0; i < x.length; i++) {
-            x[i] /= sum;
-        }
-        return x;
-    }
-
-    /**
-     * The dirichletNoise method applies the Dirichlet noise to a given array.
-     * Dirichlet noise is used in the MCTS algorithm to encourage exploration of the search space.
-     *
-     * @param x       {@link float[]} the array to which the Dirichlet noise is applied
-     * @param epsilon {@link double} the epsilon value for the Dirichlet noise
-     * @param alpha   {@link double} the alpha value for the Dirichlet noise
-     * @return float[] the array after applying the Dirichlet noise
-     */
-    private float[] dirichletNoise(float[] x, float epsilon, float alpha) {
-        float[] noise = new float[x.length];
-        for (int i = 0; i < x.length; i++) {
-            noise[i] = (float) ((1 - epsilon) * x[i] + epsilon * Math.random() * alpha);
-        }
-        return noise;
-    }
-
-    /**
-     * The elementwiseMultiply method performs element-wise multiplication of two arrays.
-     * Element-wise multiplication means that the same index in each array are multiplied together.
-     *
-     * @param a {@link float[]} the first array
-     * @param b {@link float[]} the second array
-     * @return float[] the result of the element-wise multiplication
-     */
-    private float[] elementwiseMultiply(float[] a, int[] b) {
-        float[] result = new float[a.length];
-        for (int i = 0; i < a.length; i++) {
-            result[i] = a[i] * b[i];
-        }
-        return result;
+        return possibleMoves.get((int) (Math.random() * possibleMoves.size()));
     }
 
     /**

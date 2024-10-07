@@ -101,7 +101,7 @@ public class Node {
      *
      * @param policy {@link double[]} the policy of the current node
      */
-    public void expand(float[] policy) {
+    public void expand(int[] policy) {
         for (int action = 0; action < policy.length; action++) {
             if (policy[action] > 0) {
                 // Copy the current state
