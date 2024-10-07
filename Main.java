@@ -15,12 +15,18 @@ public class Main {
     static int p1 = 0;
     static int p2 = 0;
 
+    static MonteCarloTreeSearch mcts; // Monte Carlo Tree Search Instance
+
     /**
      * Main method of the application.
      * @param args command line arguments
      * @throws Exception if any error occurs during the execution of the method.
      */
     public static void main(String[] args) throws Exception {
+        Bohnenspiel game = new Bohnenspiel();  // Initialize game instance
+        Arguments argsMCTS = new Arguments();  // Arguments for the MCTS algorithm
+        mcts = new MonteCarloTreeSearch(game, argsMCTS);  // Initialize MCTS instance
+
         // System.out.println(load(server));
         createGame();
         // openGames();
@@ -114,7 +120,8 @@ public class Main {
         String checkURL = server + "/api/check/" + gameID + "/" + name;
         String statesMsgURL = server + "/api/statemsg/" + gameID;
         String stateIdURL = server + "/api/state/" + gameID;
-        int[] board = {6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}; // position 1-12
+        int[] board = {6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}; // initial board state
+
         int start, end;
         if (offset == 0) {
             start = 7;
@@ -132,22 +139,19 @@ public class Main {
                 if (moveState != -1) {
                     int selectedField = moveState - 1;
                     board = updateBoard(board, selectedField);
-                    System.out.println("Gegner wï¿½hlte: " + moveState + " /\t" + p1 + " - " + p2);
+                    System.out.println("Gegner wählte: " + moveState + " /\t" + p1 + " - " + p2);
                     System.out.println(printBoard(board) + "\n");
                 }
-                // calculate fieldID
-                int selectField;
-                // System.out.println("Finde Zahl: ");
-                do {
-                    selectField = (int) (Math.random() * 6) + offset;
-                    // System.out.println("\t-> " + selectField );
-                } while (board[selectField] == 0);
 
-                board = updateBoard(board, selectField);
-                System.out.println("Wï¿½hle Feld: " + (selectField + 1) + " /\t" + p1 + " - " + p2);
+                // Use MCTS to select the best move instead of random selection
+                float[] actionProbs = mcts.search(board);
+                int bestMove = selectBestMove(actionProbs, offset);
+
+                board = updateBoard(board, bestMove);
+                System.out.println("Wähle Feld: " + (bestMove + 1) + " /\t" + p1 + " - " + p2);
                 System.out.println(printBoard(board) + "\n\n");
 
-                move(gameID, selectField + 1);
+                move(gameID, bestMove + 1);  // Make the move on the server
             } else if (moveState == -2 || stateID == 2) {
                 System.out.println("GAME Finished");
                 checkURL = server + "/api/statemsg/" + gameID;
@@ -156,7 +160,6 @@ public class Main {
             } else {
                 System.out.println("- " + moveState + "\t\t" + load(statesMsgURL));
             }
-
         }
     }
 
@@ -249,6 +252,31 @@ public class Main {
      */
     static String load(String url) throws Exception {
         URI uri = new URI(url.replace(" ", ""));
-        return uri.toString();
+        BufferedReader in = new BufferedReader(new InputStreamReader(uri.toURL().openStream()));
+        StringBuilder response = new StringBuilder();
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        return response.toString();
+    }
+
+    /**
+     * This method selects the best move based on the action probabilities from MCTS.
+     * @param actionProbs the probabilities of each action
+     * @param offset the offset to use when selecting the best move
+     * @return the index of the best move
+     */
+    static int selectBestMove(float[] actionProbs, int offset) {
+        int bestMove = -1;
+        float maxProb = -1;
+        for (int i = offset; i < offset + 6; i++) {
+            if (actionProbs[i] > maxProb) {
+                maxProb = actionProbs[i];
+                bestMove = i;
+            }
+        }
+        return bestMove;
     }
 }
