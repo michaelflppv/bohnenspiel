@@ -1,7 +1,6 @@
 import java.net.URI;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.URI;
 
 
 /**
@@ -107,7 +106,7 @@ public class Main {
      * This method is used to play the game.
      * It first constructs the URLs for checking the game state, getting the state message, and getting the state ID.
      * It then initializes the game board and sets the start and end positions based on the provided offset.
-     *
+
      * The method enters a loop where it checks the game state every second.
      * If the state ID is not "2" and the move state is within the start and end positions or is "-1", it proceeds to make a move.
      * If the move state is "-2" or the state ID is "2", it prints "GAME Finished" to the console, fetches the state message, and returns from the method.
@@ -167,7 +166,7 @@ public class Main {
      * This method is used to update the game board.
      * It first gets the value at the provided field and sets the field to 0.
      * It then distributes the value across the board in a clockwise direction.
-     *
+
      * If the final field has 2, 4, or 6 beans, it captures the beans and adds them to the player's score.
      * It continues capturing beans from the previous fields as long as they have 2, 4, or 6 beans.
      *
