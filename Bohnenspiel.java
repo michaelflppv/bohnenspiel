@@ -83,7 +83,7 @@ public class Bohnenspiel {
     /**
      * Returns the value from the opponent's perspective.
      */
-    public int getOpponentValue(int value) {
+    public float getOpponentValue(float value) {
         return -value;
     }
 
