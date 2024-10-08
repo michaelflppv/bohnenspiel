@@ -24,7 +24,7 @@ public class Node {
     private double valueSum;
 
     // list of child nodes of the current node
-    private List<Node> children;
+    private final List<Node> children;
 
     /**
      * Constructor for the Node class.
