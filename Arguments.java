@@ -13,7 +13,7 @@ public class Arguments {
      */
     public Arguments() {
         // default values for the hyperparameters
-        this.numMCTSSearches = 200;
+        this.numMCTSSearches = 100;
         this.c = 2;
 
     }

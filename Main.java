@@ -1,6 +1,7 @@
 import java.net.URI;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Scanner;
 
 
 /**
@@ -27,9 +28,30 @@ public class Main {
         mcts = new MonteCarloTreeSearch(game, argsMCTS);  // Initialize MCTS instance
 
         // System.out.println(load(server));
-        createGame();
-        // openGames();
-        // joinGame("0");
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("What do you want to do?");
+        System.out.println("1: Create a new game");
+        System.out.println("2: See the list of open games");
+        System.out.println("3: Join a game");
+
+        int choice = scanner.nextInt();
+
+        switch (choice) {
+            case 1:
+                createGame();
+                break;
+            case 2:
+                openGames();
+                break;
+            case 3:
+                System.out.println("Please paste the gameID:");
+                String gameID = scanner.next();
+                joinGame(gameID);
+                break;
+            default:
+                System.out.println("Invalid choice");
+                break;
+        }
     }
 
 
@@ -119,10 +141,9 @@ public class Main {
         String checkURL = server + "/api/check/" + gameID + "/" + name;
         String statesMsgURL = server + "/api/statemsg/" + gameID;
         String stateIdURL = server + "/api/state/" + gameID;
-        int[] board = {6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}; // initial board state
-
+        int[] board = { 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6 }; // position 1-12
         int start, end;
-        if (offset == 0) {
+        if(offset == 0) {
             start = 7;
             end = 12;
         } else {
@@ -130,28 +151,32 @@ public class Main {
             end = 6;
         }
 
-        while (true) {
+        while(true) {
             Thread.sleep(1000);
             int moveState = Integer.parseInt(load(checkURL));
             int stateID = Integer.parseInt(load(stateIdURL));
-            if (stateID != 2 && ((start <= moveState && moveState <= end) || moveState == -1)) {
-                if (moveState != -1) {
+            if(stateID != 2 && ((start <= moveState && moveState <= end) || moveState == -1)) {
+                if(moveState != -1) {
                     int selectedField = moveState - 1;
                     board = updateBoard(board, selectedField);
                     System.out.println("Gegner wählte: " + moveState + " /\t" + p1 + " - " + p2);
                     System.out.println(printBoard(board) + "\n");
                 }
+                // calculate fieldID
+                int selectField;
+                // System.out.println("Finde Zahl: ");
+                do {
+                    float[] actionProbs = mcts.search(board);
+                    selectField = selectBestMove(actionProbs, offset); // Select the best move based on MCTS
+                    // System.out.println("\t-> " + selectField );
+                } while(selectField == -1 || board[selectField] == 0);
 
-                // Use MCTS to select the best move instead of random selection
-                float[] actionProbs = mcts.search(board);
-                int bestMove = selectBestMove(actionProbs, offset);
-
-                board = updateBoard(board, bestMove);
-                System.out.println("Wähle Feld: " + (bestMove + 1) + " /\t" + p1 + " - " + p2);
+                board = updateBoard(board, selectField);
+                System.out.println("Wähle Feld: " + (selectField + 1) + " /\t" + p1 + " - " + p2);
                 System.out.println(printBoard(board) + "\n\n");
 
-                move(gameID, bestMove + 1);  // Make the move on the server
-            } else if (moveState == -2 || stateID == 2) {
+                move(gameID, selectField + 1);
+            } else if(moveState == -2 || stateID == 2) {
                 System.out.println("GAME Finished");
                 checkURL = server + "/api/statemsg/" + gameID;
                 System.out.println(load(checkURL));
@@ -159,6 +184,7 @@ public class Main {
             } else {
                 System.out.println("- " + moveState + "\t\t" + load(statesMsgURL));
             }
+
         }
     }
 
