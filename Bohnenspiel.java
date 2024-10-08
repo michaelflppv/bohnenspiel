@@ -4,9 +4,7 @@ public class Bohnenspiel {
     private int[] board;  // The current state of the game board.
     private int p1;       // Player 1's score.
     private int p2;       // Player 2's score.
-    private final int rowCount;    // Number of rows.
-    private final int columnCount; // Number of columns.
-    private final int actionSize;  // Total number of possible actions.
+
 
     /**
      * Initializes the Bohnenspiel object with default row and column counts.
@@ -16,9 +14,6 @@ public class Bohnenspiel {
         Arrays.fill(this.board, 6); // Each field starts with 6 beans
         this.p1 = 0;
         this.p2 = 0;
-        this.rowCount = 2;
-        this.columnCount = board.length / rowCount;
-        this.actionSize = rowCount * columnCount;
     }
 
     @Override
@@ -140,19 +135,5 @@ public class Bohnenspiel {
             field = (field == 0) ? 11 : field - 1;
         }
 
-    }
-
-    // Additional getters for score (p1 and p2)
-    public int getP1Score() {
-        return this.p1;
-    }
-
-    public int getP2Score() {
-        return this.p2;
-    }
-
-    // Getter for action size
-    public int getActionSize() {
-        return this.actionSize;
     }
 }
