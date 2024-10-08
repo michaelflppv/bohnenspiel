@@ -17,9 +17,9 @@ public class Node {
     // Number of wins for the blue player from the current node
     private int sumWinsBlue;
     // list of child nodes of the current node
-    private List<Node> childNodes;
+    private final List<Node> childNodes;
     private List<Integer> possibleActions;
-    private int action; // the action that led to this node
+    private final int action; // the action that led to this node
 
     /**
      * Constructor for the root node.

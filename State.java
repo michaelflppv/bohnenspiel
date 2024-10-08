@@ -106,7 +106,9 @@ public class State {
             return false;
         }
         // Heuristic for the player with the most beans in their store
-        return this.scoreRed >= this.scoreBlue;
+        int redScore = this.scoreRed + Arrays.stream(this.board).limit(6).sum();
+        int blueScore = this.scoreBlue + Arrays.stream(this.board).skip(6).sum();
+        return redScore >= blueScore;
     }
 
 

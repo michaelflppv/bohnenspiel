@@ -10,13 +10,13 @@ import java.util.Scanner;
 public class Main {
     // static String server = "http://127.0.0.1:5000";
     static String server = "http://bohnenspiel.informatik.uni-mannheim.de";
-    static String name = "mysuperagent";
+    static String name = "bonjour";
 
     static int p1 = 0;
     static int p2 = 0;
-    static boolean redSide = true;
+    static boolean isRedSide = true;
 
-    static MCTS mcts = new MCTS(); // Monte Carlo Tree Search Instance
+    static Node lastBestActionNode;
 
     /**
      * Main method of the application.
@@ -63,7 +63,7 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     static void createGame() throws Exception {
-        redSide = true;
+        isRedSide = true;
         String url = server + "/api/creategame/" + name;
         String gameID = load(url);
         System.out.println("Spiel erstellt. ID: " + gameID);
@@ -113,7 +113,7 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     static void joinGame(String gameID) throws Exception {
-        redSide = false;
+        isRedSide = false;
         String url = server + "/api/joingame/" + gameID + "/" + name;
         String state = load(url);
         System.out.println("Join-Game-State: " + state);
@@ -162,9 +162,23 @@ public class Main {
                     System.out.println("Gegner wählte: " + moveState + " /\t" + p1 + " - " + p2);
                     System.out.println(printBoard(board) + "\n");
                 }
-                // calculate fieldID
-                // Berechne den nächsten Zug:
-                int selectField = mcts.getBestAction(new Node(new State(board, p1, p2, redSide)));
+
+                // Calculate the next move using MCTS
+                // The parts of the tree that can be reused are stored in lastBestActionNode
+                if (lastBestActionNode == null) {
+                    lastBestActionNode = new Node(new State(board, p1, p2, isRedSide));
+                } else {
+                    int[] finalBoard = board;
+                    lastBestActionNode.getChildNodes().stream().filter(node -> node.getAction() == moveState - 1).findFirst().ifPresentOrElse(node -> {
+                        lastBestActionNode = node;
+                    }, () -> {
+                        lastBestActionNode = new Node(new State(finalBoard, p1, p2, isRedSide));
+                    });
+                }
+
+                // Returns the root node of the finished mcts simulation
+                Node nextMove = MCTS.runMCTS(lastBestActionNode, Arguments.NUM_MCTS_SEARCHES);
+                int selectField = MCTS.getBestActionFromFinishedSimulationRootNode(lastBestActionNode);
 
                 board = updateBoard(board, selectField);
                 System.out.println("Wähle Feld: " + (selectField + 1) + " /\t" + p1 + " - " + p2);
