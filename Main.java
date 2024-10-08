@@ -10,12 +10,12 @@ import java.util.Scanner;
 public class Main {
     // static String server = "http://127.0.0.1:5000";
     static String server = "http://bohnenspiel.informatik.uni-mannheim.de";
-    static String name = "random-AI";
+    static String name = "mysuperagent";
 
     static int p1 = 0;
     static int p2 = 0;
 
-    static MonteCarloTreeSearch mcts; // Monte Carlo Tree Search Instance
+    static MCTS mcts = new MCTS(); // Monte Carlo Tree Search Instance
 
     /**
      * Main method of the application.
@@ -23,11 +23,6 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     public static void main(String[] args) throws Exception {
-        State game = new State();  // Initialize game instance
-        Arguments argsMCTS = new Arguments();  // Arguments for the MCTS algorithm
-        mcts = new MonteCarloTreeSearch(game, argsMCTS);  // Initialize MCTS instance
-
-        // System.out.println(load(server));
         Scanner scanner = new Scanner(System.in);
         System.out.println("What do you want to do?");
         System.out.println("1: Create a new game");
@@ -163,13 +158,8 @@ public class Main {
                     System.out.println(printBoard(board) + "\n");
                 }
                 // calculate fieldID
-                int selectField;
-                // System.out.println("Finde Zahl: ");
-                do {
-                    float[] actionProbs = mcts.search(board);
-                    selectField = selectBestMove(actionProbs, offset); // Select the best move based on MCTS
-                    // System.out.println("\t-> " + selectField );
-                } while(selectField == -1 || board[selectField] == 0);
+                // Berechne den nächsten Zug:
+                int selectField = mcts.getBestAction(new Node(new State(board, p1, p2, false)));
 
                 board = updateBoard(board, selectField);
                 System.out.println("Wähle Feld: " + (selectField + 1) + " /\t" + p1 + " - " + p2);
