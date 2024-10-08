@@ -1,9 +1,9 @@
 import numpy as np
 
 
-class Bohnenspiel:
+class State:
     """
-    Bohnenspiel game class that provides game-specific logic and state management.
+    State game class that provides game-specific logic and state management.
 
     Attributes:
         row_count (int): The number of rows in the game board.
@@ -13,7 +13,7 @@ class Bohnenspiel:
 
     def __init__(self):
         """
-        Initializes the Bohnenspiel object with default row and column counts.
+        Initializes the State object with default row and column counts.
         """
         self.row_count = 3
         self.column_count = 3
@@ -21,12 +21,12 @@ class Bohnenspiel:
 
     def __repr__(self):
         """
-        Returns a string representation of the Bohnenspiel object.
+        Returns a string representation of the State object.
 
         Returns:
             str: The string representation of the game.
         """
-        return "Bohnenspiel"
+        return "State"
 
     def get_initial_state(self):
         """

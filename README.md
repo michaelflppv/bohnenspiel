@@ -1,12 +1,12 @@
-# Bohnenspiel AI - Java Implementation
+# State AI - Java Implementation
 
 ## Overview
 
-This project involves implementing an AI to play the game **Bohnenspiel** using a Monte-Carlo Tree Search (MCTS) algorithm. The AI must compete against a reference AI, which employs a Min-Max algorithm with a depth of 4. The goal is to create a smarter AI that can outperform the reference AI consistently, making decisions within a 3-second timeframe for each move.
+This project involves implementing an AI to play the game **State** using a Monte-Carlo Tree Search (MCTS) algorithm. The AI must compete against a reference AI, which employs a Min-Max algorithm with a depth of 4. The goal is to create a smarter AI that can outperform the reference AI consistently, making decisions within a 3-second timeframe for each move.
 
 ## Game Rules - Specific Variant
 
-In this variant of the Bohnenspiel:
+In this variant of the State:
 
 1. **Capture Conditions**: 
    - A player captures beans if the last bean lands in a field with **2, 4, or 6 beans**. 
@@ -35,7 +35,7 @@ In this variant of the Bohnenspiel:
 
 #### REST API Integration
 
-The AI must use the REST interface provided at [Bohnenspiel API Documentation](http://bohnenspiel.informatik.uni-mannheim.de/). This interface allows the AI to play against the reference AI and other players.
+The AI must use the REST interface provided at [State API Documentation](http://bohnenspiel.informatik.uni-mannheim.de/). This interface allows the AI to play against the reference AI and other players.
 
 - **Java Integration**:
   - A basic random AI is available in the [Main.java](http://bohnenspiel.informatik.uni-mannheim.de/doc/index) class. This class can be used to connect the custom AI to the game interface.

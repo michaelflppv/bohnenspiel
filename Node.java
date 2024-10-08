@@ -6,7 +6,7 @@ import java.util.List;
  */
 public class Node {
     // AI Client
-    private final Bohnenspiel game;
+    private final State game;
     // Hyperparameters for the MCTS algorithm
     private final Arguments args;
     // Current state of the game
@@ -29,7 +29,7 @@ public class Node {
     /**
      * Constructor for the Node class.
      *
-     * @param game    {@link Bohnenspiel} the game on which the MCTS algorithm is applied
+     * @param game    {@link State} the game on which the MCTS algorithm is applied
      * @param arguments map for hyperparameters of MCTS
      * @param board     {@link int[]} the current state of the game
      * @param parent    {@link Node} the parent node
@@ -37,7 +37,7 @@ public class Node {
      * @param prior     {@link float} the prior probability of the current node
      * @param visitCount {@link int} the number of times the node has been visited
      */
-    public Node(Bohnenspiel game, Arguments arguments, int[] board, Node parent, int move, float prior, int visitCount) {
+    public Node(State game, Arguments arguments, int[] board, Node parent, int move, float prior, int visitCount) {
         this.game = game;
         this.args = arguments;
         this.board = board;

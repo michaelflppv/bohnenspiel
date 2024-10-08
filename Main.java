@@ -23,7 +23,7 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     public static void main(String[] args) throws Exception {
-        Bohnenspiel game = new Bohnenspiel();  // Initialize game instance
+        State game = new State();  // Initialize game instance
         Arguments argsMCTS = new Arguments();  // Arguments for the MCTS algorithm
         mcts = new MonteCarloTreeSearch(game, argsMCTS);  // Initialize MCTS instance
 

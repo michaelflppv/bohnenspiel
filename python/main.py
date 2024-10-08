@@ -2,7 +2,7 @@ import torch
 from torch.optim import Adam
 import random
 import numpy as np
-from python.bohnenspiel import Bohnenspiel
+from python.bohnenspiel import State
 from python.architecture_model import ResNet
 from train import Train
 import time
@@ -49,7 +49,7 @@ def train_model():
     Function to train the model.
     """
     # Initialize the game, model, and optimizer
-    game = Bohnenspiel()
+    game = State()
     model = ResNet(game, 4, 128, device)
     optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 
@@ -67,7 +67,7 @@ def start_game():
     Function to start the game using the trained model.
     """
     # Initialize the game, model, and optimizer
-    game = Bohnenspiel()
+    game = State()
     model = ResNet(game, 4, 128, device)
     optimizer = Adam(model.parameters(), lr=0.001, weight_decay=0.0001)
 

@@ -9,17 +9,17 @@ import java.util.concurrent.*;
  */
 public class MonteCarloTreeSearch {
     // Game on which the MCTS algorithm is applied
-    private final Bohnenspiel game;
+    private final State game;
     // Hyperparameters for the MCTS algorithm
     private final Arguments args;
 
     /**
      * Constructor for the MonteCarloTreeSearch class.
      *
-     * @param game {@link Bohnenspiel} the game on which the MCTS algorithm is applied
+     * @param game {@link State} the game on which the MCTS algorithm is applied
      * @param args   {@link Arguments} map for hyperparameters of MCTS
      */
-    public MonteCarloTreeSearch(Bohnenspiel game, Arguments args) {
+    public MonteCarloTreeSearch(State game, Arguments args) {
         this.game = game;
         this.args = args;
     }
