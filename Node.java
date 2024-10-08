@@ -70,17 +70,6 @@ public class Node {
             double ucb2 = child2.calculateUCB();
             return Double.compare(ucb1, ucb2);
         }).orElse(null);
-
-//        Node bestChild = null;
-//        double bestUcb = Double.NEGATIVE_INFINITY;
-//        for (Node child : this.childNodes) {
-//            double ucb = this.getUcb(child);
-//            if (ucb > bestUcb) {
-//                bestChild = child;
-//                bestUcb = ucb;
-//            }
-//        }
-        //return bestChild;
     }
 
     /**
@@ -92,14 +81,6 @@ public class Node {
         double winRate = parent.state.getCurrentPlayer() ? ((double) sumWinsRed) / visitCount : ((double) sumWinsBlue) / visitCount;
         double exploration = Math.sqrt(Math.log(parent.visitCount) / visitCount);
         return winRate + Arguments.C * exploration;
-//        double qValue;
-//        if (child.visitCount == 0) {
-//            qValue = 0;
-//        } else {
-//            qValue = 1 - ((child.valueSum / child.visitCount) + 1) / 2;
-//        }
-//        double exploration = this.args.getC() * (Math.sqrt(this.visitCount) / (child.visitCount + 1)) * child.prior;
-//        return qValue + exploration;
     }
 
     /**
@@ -129,22 +110,6 @@ public class Node {
         return new Node(this, nextState, action);
     }
 
-//
-//    /**
-//     * This method back-propagates the value of the current node to all its ancestors.
-//     *
-//     * @param value {@link int} the value to be back-propagated
-//     */
-//    public void backpropagate(float value) {
-//        this.valueSum += value;
-//        this.visitCount++;
-//
-//        if (this.parent != null) {
-//            value = this.state.getOpponentValue(value);
-//            this.parent.backpropagate(value);
-//        }
-//    }
-
 
     public int getAction() {
         return action;
@@ -173,14 +138,6 @@ public class Node {
 
     public int getVisitCount() {
         return visitCount;
-    }
-
-    public int getWinsRed() {
-        return sumWinsRed;
-    }
-
-    public int getWinsBlue() {
-        return sumWinsBlue;
     }
 
 }

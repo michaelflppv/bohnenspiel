@@ -14,6 +14,7 @@ public class Main {
 
     static int p1 = 0;
     static int p2 = 0;
+    static boolean redSide = true;
 
     static MCTS mcts = new MCTS(); // Monte Carlo Tree Search Instance
 
@@ -68,7 +69,7 @@ public class Main {
 
         url = server + "/api/check/" + gameID + "/" + name;
         while (true) {
-            Thread.sleep(3000);
+            Thread.sleep(50);
             String state = load(url);
             System.out.print("." + " (" + state + ")");
             if (state.equals("0") || state.equals("-1")) {
@@ -78,6 +79,9 @@ public class Main {
                 return;
             }
         }
+
+        // We are the first player since we start the game. We are therefore the red player.
+        redSide = true;
         play(gameID, 0);
     }
 
@@ -117,6 +121,7 @@ public class Main {
         } else if (state.equals("0")) {
             System.out.println("error (join game)");
         }
+        redSide = false;
     }
 
     /**
@@ -147,7 +152,7 @@ public class Main {
         }
 
         while(true) {
-            Thread.sleep(1000);
+            Thread.sleep(50);
             int moveState = Integer.parseInt(load(checkURL));
             int stateID = Integer.parseInt(load(stateIdURL));
             if(stateID != 2 && ((start <= moveState && moveState <= end) || moveState == -1)) {
@@ -159,7 +164,7 @@ public class Main {
                 }
                 // calculate fieldID
                 // Berechne den nächsten Zug:
-                int selectField = mcts.getBestAction(new Node(new State(board, p1, p2, false)));
+                int selectField = mcts.getBestAction(new Node(new State(board, p1, p2, redSide)));
 
                 board = updateBoard(board, selectField);
                 System.out.println("Wähle Feld: " + (selectField + 1) + " /\t" + p1 + " - " + p2);
