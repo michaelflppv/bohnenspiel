@@ -102,19 +102,19 @@ public class Node {
      * @param policy {@link double[]} the policy of the current node
      */
     public void expand(int[] policy) {
-        for (int action = 0; action < policy.length; action++) {
-            if (policy[action] > 0) {
-                // Copy the current state
-                int[] childBoard = board.clone();
+        // Get all the possible next states using the expandState method of the State class
+        State[] nextStates = game.expandState();
 
-                // Get the next state by applying the action
-                childBoard = game.changePerspective(childBoard, game.getOpponent(1));
-                childBoard = game.getNextState(childBoard, action);
+        for (int i = 0; i < nextStates.length; i++) {
+            // Get the next state and its corresponding board
+            State nextState = nextStates[i];
+            int[] childBoard = nextState.getBoard();
 
-                // Create a new child node and add it to the list of children
-                Node child = new Node(game, args, childBoard, this.parent, action, policy[action], 0);
-                this.children.add(child);
-            }
+            // Create a new child node based on the action that generated this state
+            Node child = new Node(nextState, args, childBoard, this, i, policy[i], 0);
+
+            // Add the new child node to the list of children
+            this.children.add(child);
         }
 
     }
@@ -129,8 +129,11 @@ public class Node {
         this.visitCount++;
 
         if (this.parent != null) {
-            value = this.game.getOpponentValue(value);
-            this.parent.backpropagate(value);
+            // Reverse the value for the opponent (as we're switching players)
+            float reversedValue = this.game.checkWin() ? value : -value;
+
+            // Backpropagate to the parent
+            this.parent.backpropagate(reversedValue);
         }
     }
 
