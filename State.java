@@ -48,11 +48,49 @@ public class State {
         return validMoves;
     }
 
+    /**
+     * @return An array of all possible new states after one valid move by the current player.
+     */
     public State[] expandState() {
+        boolean[] validMoves = getValidMoves();  // Get all valid moves for the current player.
+        int validMoveCount = 0;
 
+        // Count how many valid moves are available.
+        for (boolean move : validMoves) {
+            if (move) {
+                validMoveCount++;
+            }
+        }
 
+        // Create an array to store all possible new states.
+        State[] newStates = new State[validMoveCount];
+        int index = 0;
+
+        // Iterate over all possible moves.
+        for (int i = 0; i < validMoves.length; i++) {
+            if (validMoves[i]) {
+                // Make a copy of the board for the new state.
+                int[] newBoard = Arrays.copyOf(this.board, this.board.length);
+
+                // Redistribute the beans from the selected pit.
+                int beans = newBoard[i];
+                newBoard[i] = 0;
+                int currentPos = i;
+
+                // Redistribute the beans counterclockwise.
+                while (beans > 0) {
+                    currentPos = (currentPos + 1) % newBoard.length;
+                    newBoard[currentPos]++;
+                    beans--;
+                }
+
+                // Create the new state with the updated board and alternate the player.
+                newStates[index++] = new State(newBoard, this.p1, this.p2, !this.redPlayer);
+            }
+        }
+
+        return newStates;
     }
-
 
 
     /**
