@@ -63,6 +63,7 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     static void createGame() throws Exception {
+        redSide = true;
         String url = server + "/api/creategame/" + name;
         String gameID = load(url);
         System.out.println("Spiel erstellt. ID: " + gameID);
@@ -81,7 +82,6 @@ public class Main {
         }
 
         // We are the first player since we start the game. We are therefore the red player.
-        redSide = true;
         play(gameID, 0);
     }
 
@@ -113,6 +113,7 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     static void joinGame(String gameID) throws Exception {
+        redSide = false;
         String url = server + "/api/joingame/" + gameID + "/" + name;
         String state = load(url);
         System.out.println("Join-Game-State: " + state);
@@ -121,7 +122,6 @@ public class Main {
         } else if (state.equals("0")) {
             System.out.println("error (join game)");
         }
-        redSide = false;
     }
 
     /**
