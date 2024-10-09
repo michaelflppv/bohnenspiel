@@ -2,6 +2,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The State class represents the state of the game at a given point in time.
+ */
 public class State {
     private final int[] board;  // The current state of the game board.
     private final int scoreRed;       // Player 1's score.
@@ -112,11 +115,16 @@ public class State {
     }
 
 
-    // Additional getters for score (p1 and p2)
+    /**
+     * Returns the score of the first player.
+     */
     public int getP1Score() {
         return this.scoreRed;
     }
 
+    /**
+     * Returns the score of the second player.
+     */
     public int getP2Score() {
         return this.scoreBlue;
     }
@@ -127,10 +135,16 @@ public class State {
         return this.board;
     }
 
+    /**
+     * Returns the current player.
+     */
     public boolean getCurrentPlayer() {
         return this.redPlayersTurn;
     }
 
+    /**
+     * Returns the String representation of the current state.
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

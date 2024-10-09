@@ -110,15 +110,29 @@ public class Node {
         return new Node(this, nextState, action);
     }
 
-
+    /**
+     * Returns the action that led to this node.
+     *
+     * @return The action that led to this node.
+     */
     public int getAction() {
         return action;
     }
 
+    /**
+     * Returns the result of the game state at this node.
+     *
+     * @return The result of the game state at this node.
+     */
     public boolean getResult() {
         return state.getResult();
     }
 
+    /**
+     * Updates the statistics of this node based on the result of a simulation.
+     *
+     * @param isRedWin A boolean indicating whether the red player won in the simulation.
+     */
     public void updateStats(boolean isRedWin) {
         if (isRedWin) {
             sumWinsRed++;
@@ -128,14 +142,29 @@ public class Node {
         visitCount++;
     }
 
+    /**
+     * Returns the parent of this node.
+     *
+     * @return The parent of this node.
+     */
     public Node getParent() {
         return parent;
     }
 
+    /**
+     * Returns the child nodes of this node.
+     *
+     * @return The child nodes of this node.
+     */
     public List<Node> getChildNodes() {
         return childNodes;
     }
 
+    /**
+     * Returns the number of times this node has been visited.
+     *
+     * @return The number of times this node has been visited.
+     */
     public int getVisitCount() {
         return visitCount;
     }
