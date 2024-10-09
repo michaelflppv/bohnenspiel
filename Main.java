@@ -177,7 +177,7 @@ public class Main {
                 }
 
                 // Returns the root node of the finished mcts simulation
-                Node nextMove = MCTS.runMCTS(lastBestActionNode, Arguments.NUM_MCTS_SEARCHES);
+                Node nextMove = MCTS.runMCTS(lastBestActionNode);
                 int selectField = MCTS.getBestActionFromFinishedSimulationRootNode(lastBestActionNode);
 
                 board = updateBoard(board, selectField);

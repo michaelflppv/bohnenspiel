@@ -108,10 +108,15 @@ public class State {
         if (this.scoreBlue > 36) {
             return false;
         }
-        // Heuristic for the player with the most beans in their store
-        int redScore = this.scoreRed + Arrays.stream(this.board).limit(6).sum();
-        int blueScore = this.scoreBlue + Arrays.stream(this.board).skip(6).sum();
-        return redScore >= blueScore;
+
+        if (Arguments.USE_STARVATION) {
+            // Heuristic for the player with the most beans in their store
+            int redScore = this.scoreRed + Arrays.stream(this.board).limit(6).sum();
+            int blueScore = this.scoreBlue + Arrays.stream(this.board).skip(6).sum();
+            return redScore >= blueScore;
+        }
+
+        return this.scoreRed >= this.scoreBlue;
     }
 
 

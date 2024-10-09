@@ -19,10 +19,9 @@ public class MCTS {
    * Runs the MCTS algorithm for a specified number of iterations.
    *
    * @param root The root node to start the search from.
-   * @param iterations The number of iterations to run the search for.
    * @return The root node after running the search.
    */
-  public static Node runMCTS(Node root, int iterations) {
+  public static Node runMCTS(Node root) {
     double startTime = System.currentTimeMillis();
     while(System.currentTimeMillis() - startTime < Arguments.MAX_SIMULATION_TIME) {
       Node node = selection(root);
