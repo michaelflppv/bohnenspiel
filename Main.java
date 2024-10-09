@@ -9,8 +9,8 @@ import java.util.Scanner;
  */
 public class Main {
     // static String server = "http://127.0.0.1:5000";
-    static String server = "http://bohnenspiel.informatik.uni-mannheim.de";
-    static String name = "bonjour";
+    static String server = "http://ole.informatik.uni-mannheim.de";
+    static String name = "star lord";
 
     static int p1 = 0;
     static int p2 = 0;
