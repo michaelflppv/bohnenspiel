@@ -9,13 +9,14 @@ import java.util.Scanner;
  */
 public class Main {
     // static String server = "http://127.0.0.1:5000";
-    static String server = "http://bohnenspiel.informatik.uni-mannheim.de";
-    static String name = "random-AI";
+    static String server = "http://ole.informatik.uni-mannheim.de";
+    static String name = "star lord";
 
     static int p1 = 0;
     static int p2 = 0;
+    static boolean isRedSide = true;
 
-    static MonteCarloTreeSearch mcts; // Monte Carlo Tree Search Instance
+    static Node lastBestActionNode;
 
     /**
      * Main method of the application.
@@ -23,11 +24,6 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     public static void main(String[] args) throws Exception {
-        State game = new State();  // Initialize game instance
-        Arguments argsMCTS = new Arguments();  // Arguments for the MCTS algorithm
-        mcts = new MonteCarloTreeSearch(game, argsMCTS);  // Initialize MCTS instance
-
-        // System.out.println(load(server));
         Scanner scanner = new Scanner(System.in);
         System.out.println("What do you want to do?");
         System.out.println("1: Create a new game");
@@ -67,13 +63,14 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     static void createGame() throws Exception {
+        isRedSide = true;
         String url = server + "/api/creategame/" + name;
         String gameID = load(url);
         System.out.println("Spiel erstellt. ID: " + gameID);
 
         url = server + "/api/check/" + gameID + "/" + name;
         while (true) {
-            Thread.sleep(3000);
+            Thread.sleep(50);
             String state = load(url);
             System.out.print("." + " (" + state + ")");
             if (state.equals("0") || state.equals("-1")) {
@@ -83,6 +80,8 @@ public class Main {
                 return;
             }
         }
+
+        // We are the first player since we start the game. We are therefore the red player.
         play(gameID, 0);
     }
 
@@ -114,6 +113,7 @@ public class Main {
      * @throws Exception if any error occurs during the execution of the method.
      */
     static void joinGame(String gameID) throws Exception {
+        isRedSide = false;
         String url = server + "/api/joingame/" + gameID + "/" + name;
         String state = load(url);
         System.out.println("Join-Game-State: " + state);
@@ -152,7 +152,7 @@ public class Main {
         }
 
         while(true) {
-            Thread.sleep(1000);
+            Thread.sleep(50);
             int moveState = Integer.parseInt(load(checkURL));
             int stateID = Integer.parseInt(load(stateIdURL));
             if(stateID != 2 && ((start <= moveState && moveState <= end) || moveState == -1)) {
@@ -162,14 +162,23 @@ public class Main {
                     System.out.println("Gegner wählte: " + moveState + " /\t" + p1 + " - " + p2);
                     System.out.println(printBoard(board) + "\n");
                 }
-                // calculate fieldID
-                int selectField;
-                // System.out.println("Finde Zahl: ");
-                do {
-                    float[] actionProbs = mcts.search(board);
-                    selectField = selectBestMove(actionProbs, offset); // Select the best move based on MCTS
-                    // System.out.println("\t-> " + selectField );
-                } while(selectField == -1 || board[selectField] == 0);
+
+                // Calculate the next move using MCTS
+                // The parts of the tree that can be reused are stored in lastBestActionNode
+                if (lastBestActionNode == null) {
+                    lastBestActionNode = new Node(new State(board, p1, p2, isRedSide));
+                } else {
+                    int[] finalBoard = board;
+                    lastBestActionNode.getChildNodes().stream().filter(node -> node.getAction() == moveState - 1).findFirst().ifPresentOrElse(node -> {
+                        lastBestActionNode = node;
+                    }, () -> {
+                        lastBestActionNode = new Node(new State(finalBoard, p1, p2, isRedSide));
+                    });
+                }
+
+                // Returns the root node of the finished mcts simulation
+                Node nextMove = MCTS.runMCTS(lastBestActionNode);
+                int selectField = MCTS.getBestActionFromFinishedSimulationRootNode(lastBestActionNode);
 
                 board = updateBoard(board, selectField);
                 System.out.println("Wähle Feld: " + (selectField + 1) + " /\t" + p1 + " - " + p2);
@@ -285,23 +294,5 @@ public class Main {
         }
         in.close();
         return response.toString();
-    }
-
-    /**
-     * This method selects the best move based on the action probabilities from MCTS.
-     * @param actionProbs the probabilities of each action
-     * @param offset the offset to use when selecting the best move
-     * @return the index of the best move
-     */
-    static int selectBestMove(float[] actionProbs, int offset) {
-        int bestMove = -1;
-        float maxProb = -1;
-        for (int i = offset; i < offset + 6; i++) {
-            if (actionProbs[i] > maxProb) {
-                maxProb = actionProbs[i];
-                bestMove = i;
-            }
-        }
-        return bestMove;
     }
 }

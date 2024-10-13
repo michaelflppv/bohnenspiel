@@ -1,63 +1,67 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * The Node class represents a node in the search tree of MCTS algorithm.
  */
 public class Node {
-    // AI Client
-    private final State game;
-    // Hyperparameters for the MCTS algorithm
-    private final Arguments args;
-    // Current state of the game
-    private final int[] board;
     // Reference to the parent node
     private final Node parent;
-
-    // Action taken to reach the node
-    private final int move;
-    // prior probability of the current node
-    private final float prior;
+    // Current state of the game
+    private final State state;
     // number of times the node has been visited
     private int visitCount;
-    // sum of the values of all nodes visited from the current node
-    private double valueSum;
-
+    // Number of wins for the red player from the current node
+    private int sumWinsRed;
+    // Number of wins for the blue player from the current node
+    private int sumWinsBlue;
     // list of child nodes of the current node
-    private List<Node> children;
+    private final List<Node> childNodes;
+    private List<Integer> possibleActions;
+    private final int action; // the action that led to this node
 
     /**
-     * Constructor for the Node class.
-     *
-     * @param game    {@link State} the game on which the MCTS algorithm is applied
-     * @param arguments map for hyperparameters of MCTS
-     * @param board     {@link int[]} the current state of the game
-     * @param parent    {@link Node} the parent node
-     * @param move      {@link int} the action taken to reach the node
-     * @param prior     {@link float} the prior probability of the current node
-     * @param visitCount {@link int} the number of times the node has been visited
+     * Constructor for the root node.
      */
-    public Node(State game, Arguments arguments, int[] board, Node parent, int move, float prior, int visitCount) {
-        this.game = game;
-        this.args = arguments;
-        this.board = board;
-        this.parent = parent;
-
-        this.move = move;
-        this.prior = prior;
-        this.visitCount = visitCount;
-        this.valueSum = 0;
-
-        this.children = new ArrayList<>();
+    public Node(State state) {
+        this.parent = null;
+        this.state = state;
+        this.sumWinsRed = 0;
+        this.sumWinsBlue = 0;
+        this.childNodes = new ArrayList<>();
+        this.action = -1;
     }
+
+    /**
+     * Constructor for a child node.
+     */
+    public Node(Node parentNode, State state, int action) {
+        this.parent = parentNode;
+        this.state = state;
+        this.sumWinsRed = 0;
+        this.sumWinsBlue = 0;
+        this.childNodes = new ArrayList<>();
+        this.action = action;
+    }
+
 
     /**
      * This method checks if the node is fully expanded, i.e., if all its children have been visited.
      *
      * @return true if the node is fully expanded, false otherwise
      */
-    public boolean isExpanded() {
-        return !this.children.isEmpty();
+    public boolean isFullyExpanded() {
+        return this.childNodes.size() == this.state.getPossibleActions().size();
+    }
+
+    /**
+     * This method checks if the node is terminal, i.e., if the game has ended.
+     *
+     * @return true if the node is terminal, false otherwise
+     */
+    public boolean isTerminal() {
+        return state.isTerminal();
     }
 
     /**
@@ -66,107 +70,108 @@ public class Node {
      * @return the best child node
      */
     public Node select() {
-        Node bestChild = null;
-        double bestUcb = Double.NEGATIVE_INFINITY;
-
-        for (Node child : this.children) {
-            double ucb = this.getUcb(child);
-            if (ucb > bestUcb) {
-                bestChild = child;
-                bestUcb = ucb;
-            }
-        }
-        return bestChild;
+        return this.childNodes.parallelStream().max((child1, child2) -> {
+            double ucb1 = child1.calculateUCB();
+            double ucb2 = child2.calculateUCB();
+            return Double.compare(ucb1, ucb2);
+        }).orElse(null);
     }
 
     /**
      * This method calculates the Upper Confidence Bound (UCB) value of a given child node.
      *
-     * @param child {@link Node} the child node for which the UCB value is calculated
      * @return the UCB value of the child node
      */
-    public double getUcb(Node child) {
-        double qValue;
-        if (child.visitCount == 0) {
-            qValue = 0;
+    public double calculateUCB() {
+        double winRate = parent.state.getCurrentPlayer() ? ((double) sumWinsRed) / visitCount : ((double) sumWinsBlue) / visitCount;
+        double exploration = Math.sqrt(Math.log(parent.visitCount) / visitCount);
+        return winRate + Arguments.C * exploration;
+    }
+
+    /**
+     * This method expands the current node by adding a new child node for a random action that has not been explored yet.
+     */
+    public Node expand() {
+        if (possibleActions == null) {
+            possibleActions = state.getPossibleActions();
+        }
+        int action = possibleActions.remove(new Random().nextInt(possibleActions.size()));
+        State nextState = state.applyAction(action);
+        Node childNode = new Node(this, nextState, action);
+        this.childNodes.add(childNode);
+        return childNode;
+    }
+
+
+    /**
+     * This method selects a random child node of the current node.
+     * This Method is used in the simulation phase of the MCTS algorithm.
+     * @return the randomly selected child node
+     */
+    public Node getRandomChild() {
+        List<Integer> actions = state.getPossibleActions();
+        int action = actions.get(new Random().nextInt(actions.size()));
+        State nextState = state.applyAction(action);
+        return new Node(this, nextState, action);
+    }
+
+    /**
+     * Returns the action that led to this node.
+     *
+     * @return The action that led to this node.
+     */
+    public int getAction() {
+        return action;
+    }
+
+    /**
+     * Returns the result of the game state at this node.
+     *
+     * @return The result of the game state at this node.
+     */
+    public boolean getResult() {
+        return state.getResult();
+    }
+
+    /**
+     * Updates the statistics of this node based on the result of a simulation.
+     *
+     * @param isRedWin A boolean indicating whether the red player won in the simulation.
+     */
+    public void updateStats(boolean isRedWin) {
+        if (isRedWin) {
+            sumWinsRed++;
         } else {
-            qValue = 1 - ((child.valueSum / child.visitCount) + 1) / 2;
+            sumWinsBlue++;
         }
-        double exploration = this.args.getC() * (Math.sqrt(this.visitCount) / (child.visitCount + 1)) * child.prior;
-        return qValue + exploration;
+        visitCount++;
     }
 
     /**
-     * This method expands the current node by adding a new child node for each possible action.
+     * Returns the parent of this node.
      *
-     * @param policy {@link double[]} the policy of the current node
+     * @return The parent of this node.
      */
-    public void expand(int[] policy) {
-        for (int action = 0; action < policy.length; action++) {
-            if (policy[action] > 0) {
-                // Copy the current state
-                int[] childBoard = board.clone();
-
-                // Get the next state by applying the action
-                childBoard = game.changePerspective(childBoard, game.getOpponent(1));
-                childBoard = game.getNextState(childBoard, action);
-
-                // Create a new child node and add it to the list of children
-                Node child = new Node(game, args, childBoard, this.parent, action, policy[action], 0);
-                this.children.add(child);
-            }
-        }
-
+    public Node getParent() {
+        return parent;
     }
 
     /**
-     * This method back-propagates the value of the current node to all its ancestors.
+     * Returns the child nodes of this node.
      *
-     * @param value {@link int} the value to be back-propagated
+     * @return The child nodes of this node.
      */
-    public void backpropagate(float value) {
-        this.valueSum += value;
-        this.visitCount++;
-
-        if (this.parent != null) {
-            value = this.game.getOpponentValue(value);
-            this.parent.backpropagate(value);
-        }
+    public List<Node> getChildNodes() {
+        return childNodes;
     }
 
     /**
-     * This method returns the move that led to the current node.
+     * Returns the number of times this node has been visited.
      *
-     * @return the move that led to the current node
-     */
-    public int getMove() {
-        return this.move;
-    }
-
-    /**
-     * This method returns the list of children of the current node.
-     *
-     * @return the list of children of the current node
-     */
-    public List<Node> getChildren() {
-        return this.children;
-    }
-
-    /**
-     * This method returns the number of times the current node has been visited.
-     *
-     * @return the number of times the current node has been visited
+     * @return The number of times this node has been visited.
      */
     public int getVisitCount() {
-        return this.visitCount;
+        return visitCount;
     }
 
-    /**
-     * This method returns the state of the current node.
-     *
-     * @return the state of the current node
-     */
-    public int[] getBoard() {
-        return this.board;
-    }
 }

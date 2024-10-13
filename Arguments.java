@@ -1,38 +1,10 @@
 /**
  * The Arguments class represents the hyperparameters for the MCTS algorithm.
- *
- * @author mfilippo (Mikhail Filippov)
- * @version 02.04.2024
  */
 public class Arguments {
-    private final int numMCTSSearches; // number of MCTS searches
-    private final double c; // exploration constant
-
-    /**
-     * Constructor for the Arguments class.
-     */
-    public Arguments() {
-        // default values for the hyperparameters
-        this.numMCTSSearches = 100;
-        this.c = 2;
-
-    }
-
-    /**
-     * Getter for the number of MCTS searches.
-     *
-     * @return number of MCTS searches
-     */
-    public int getNumMCTSSearches() {
-        return numMCTSSearches;
-    }
-
-    /**
-     * Getter for the exploration constant.
-     *
-     * @return exploration constant
-     */
-    public double getC() {
-        return c;
-    }
+    //public static final int NUM_MCTS_SEARCHES = 2900; // number of MCTS searches
+    public static final int MAX_SIMULATION_DEPTH = 50; // maximum depth of the simulation
+    public static final double MAX_SIMULATION_TIME = 2500; // maximum time for the simulation in Milliseconds
+    public static final double C = Math.sqrt(2); // exploration constant
+    public static final boolean USE_STARVATION = true; // use starvation mechanism
 }
