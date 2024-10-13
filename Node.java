@@ -55,6 +55,11 @@ public class Node {
         return this.childNodes.size() == this.state.getPossibleActions().size();
     }
 
+    /**
+     * This method checks if the node is terminal, i.e., if the game has ended.
+     *
+     * @return true if the node is terminal, false otherwise
+     */
     public boolean isTerminal() {
         return state.isTerminal();
     }
