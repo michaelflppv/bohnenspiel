@@ -295,22 +295,4 @@ public class Main {
         in.close();
         return response.toString();
     }
-
-    /**
-     * This method selects the best move based on the action probabilities from MCTS.
-     * @param actionProbs the probabilities of each action
-     * @param offset the offset to use when selecting the best move
-     * @return the index of the best move
-     */
-    static int selectBestMove(float[] actionProbs, int offset) {
-        int bestMove = -1;
-        float maxProb = -1;
-        for (int i = offset; i < offset + 6; i++) {
-            if (actionProbs[i] > maxProb) {
-                maxProb = actionProbs[i];
-                bestMove = i;
-            }
-        }
-        return bestMove;
-    }
 }
